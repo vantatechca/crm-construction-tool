@@ -3,8 +3,6 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import stripeRouter from "./routes/stripe";
-import stripeWebhookRouter from "./routes/stripe-webhook";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 // import vslapp from "./routes/vsl.route";
@@ -110,8 +108,14 @@ function hasBookingConflict(
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  app.use("/api/stripe", requireAuth, stripeRouter);
-  // app.use("/api/stripe", stripeWebhookRouter);
+  if (process.env.STRIPE_SECRET_KEY) {
+    const { default: stripeRouter } = await import("./routes/stripe");
+    app.use("/api/stripe", requireAuth, stripeRouter);
+  } else {
+    app.use("/api/stripe", (_req, res) =>
+      res.status(503).json({ error: "Stripe is not configured" })
+    );
+  }
   const httpServer = createServer(app);
 
   // app.use(vslapp);

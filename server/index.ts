@@ -5,7 +5,6 @@ import authRouter from "./auth";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { config } from "dotenv";
-import stripeWebhookRouter from "./routes/stripe-webhook";
 import voice_AI_CallRouter from "./routes/twilio-call.route";
 import { loadUser } from "./middleware/auth";
 import path from "path";
@@ -14,6 +13,7 @@ import twoFactorRoutes from "./routes/2fa";
 import passport from "./config/passport";
 import cors from "cors";
 import { trackSessionActivity } from "./middleware/session-activity";
+import fs from "fs";
 
 // Import pool from db.ts
 import { pool } from "./db";
@@ -50,6 +50,12 @@ pool.query("SELECT NOW()", (err, res) => {
 
 const app = express();
 
+// Lightweight liveness endpoint for Render. Keep this independent of optional
+// integrations so deploy health checks only reflect whether the web process is up.
+app.get("/api/healthz", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 
 // Always trust proxy for ngrok and production (Render)
 app.set("trust proxy", 1);
@@ -66,12 +72,24 @@ app.use(
   })
 );
 
-// Stripe webhook (raw body)
-app.use(
-  "/api/stripe/webhook",
-  express.raw({ type: "application/json" }),
-  stripeWebhookRouter
-);
+// Stripe needs the untouched request body for signature verification. Keep the
+// rest of the app available for local testing when Stripe is not configured.
+if (process.env.STRIPE_SECRET_KEY) {
+  const { default: stripeWebhookRouter } = await import(
+    "./routes/stripe-webhook"
+  );
+  app.use(
+    "/api/stripe/webhook",
+    express.raw({ type: "application/json" }),
+    stripeWebhookRouter
+  );
+} else {
+  app.post(
+    "/api/stripe/webhook",
+    express.raw({ type: "application/json" }),
+    (_req, res) => res.status(503).json({ error: "Stripe is not configured" })
+  );
+}
 
 // Twilio webhook (raw body)
 app.use("/api/twilioCall_webhook", express.raw({ type: "application/json" }));
@@ -202,7 +220,7 @@ console.log("📋 ========================================\n");
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     res.status(status).json({ message });
-    throw err;
+    console.error(err);
   });
 
   // Serve static files in production
@@ -210,7 +228,7 @@ console.log("📋 ========================================\n");
     // Serve frontend build
     const publicPath = path.join(process.cwd(), "dist", "public");
     
-    if (require('fs').existsSync(publicPath)) {
+    if (fs.existsSync(publicPath)) {
       app.use(express.static(publicPath));
       app.get("*", (_req: Request, res: Response) => {
         res.sendFile(path.join(publicPath, "index.html"));

@@ -29,7 +29,9 @@ export function useWebSocket(isAuthenticated: boolean = true) {
 
     // Determine WebSocket URL based on environment
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:5000/ws";
+    const wsUrl =
+      import.meta.env.VITE_WS_URL ||
+      `${protocol}//${window.location.host}/ws`;
     console.log(`🔌 WebSocket URL:`, wsUrl);
 
     const connect = () => {

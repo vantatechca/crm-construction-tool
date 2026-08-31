@@ -44,7 +44,7 @@ router.get("/monitoring/:clientId", async (req: Request, res: Response) => {
 router.get("/follow-ups/:clientId", async (req: Request, res: Response) => {
   try {
     const { clientId } = req.params;
-    const followUps = await storage.getFollowUps(clientId);
+    const followUps = await storage.getFollowUpsByClient(clientId);
     res.json(followUps);
   } catch (error) {
     console.error("Error fetching follow-ups:", error);
@@ -54,7 +54,7 @@ router.get("/follow-ups/:clientId", async (req: Request, res: Response) => {
 
 router.post("/follow-ups", async (req: Request, res: Response) => {
   try {
-    const followUp = await storage.createFollowUp(req.body);
+    const followUp = await storage.scheduleFollowUp(req.body);
     res.json(followUp);
   } catch (error) {
     console.error("Error creating follow-up:", error);

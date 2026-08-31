@@ -28,13 +28,8 @@ const getCallbackURL = (): string => {
   }
 
   // Priority 4: Detect from NODE_ENV
-  if (process.env.NODE_ENV === "production") {
-    console.log("📍 Using production fallback URL");
-    // Fallback to Render domain (update with your actual domain)
-    return "https://construction-ai-lead-system.onrender.com/api/auth/google/callback";
-  }
-
-  // Priority 5: Default to localhost for development
+  // Production deployments should always set BASE_URL or
+  // GOOGLE_CALLBACK_URL explicitly. This fallback keeps local testing local.
   console.log("📍 Using localhost default URL");
   return "http://localhost:5000/api/auth/google/callback";
 };
@@ -42,6 +37,9 @@ const getCallbackURL = (): string => {
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 const GOOGLE_CALLBACK_URL = getCallbackURL(); // ✅ Dynamic detection
+export const googleOAuthConfigured = Boolean(
+  GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET
+);
 
 // ✅ Enhanced logging
 console.log("🔐 [GOOGLE OAUTH] Configuration:");
@@ -71,7 +69,7 @@ passport.deserializeUser(async (id: string, done) => {
 });
 
 // Google OAuth Strategy
-passport.use(
+if (googleOAuthConfigured) passport.use(
   new GoogleStrategy(
     {
       clientID: GOOGLE_CLIENT_ID,

@@ -4,11 +4,15 @@ import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
-import passport from "./config/passport";
+import passport, { googleOAuthConfigured } from "./config/passport";
 import { sessionManager } from "./services/session-manager";
 
 const router = Router();
 const SALT_ROUNDS = 10;
+const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5000";
+
+const googleUnavailable = (_req: any, res: any) =>
+  res.status(503).json({ error: "Google OAuth is not configured" });
 
 // Signup
 router.post("/api/auth/signup", async (req, res) => {
@@ -430,24 +434,26 @@ router.get("/api/auth/google/init", (req, res) => {
 // Initiate Google OAuth
 router.get(
   "/api/auth/google",
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-  })
+  googleOAuthConfigured
+    ? passport.authenticate("google", { scope: ["profile", "email"] })
+    : googleUnavailable
 );
 
 // Google OAuth callback
 router.get(
   "/api/auth/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: `${process.env.FRONTEND_URL}/login?error=google_auth_failed`,
-  }),
+  googleOAuthConfigured
+    ? passport.authenticate("google", {
+        failureRedirect: `${frontendUrl}/login?error=google_auth_failed`,
+      })
+    : googleUnavailable,
   (req, res) => {
     const user = req.user as any;
 
     if (!user) {
       console.error("❌ No user returned from Google OAuth");
       return res.redirect(
-        `${process.env.FRONTEND_URL}/login?error=auth_failed`
+        `${frontendUrl}/login?error=auth_failed`
       );
     }
 
@@ -480,12 +486,11 @@ router.get(
       if (err) {
         console.error("❌ Session save error:", err);
         return res.redirect(
-          `${process.env.FRONTEND_URL}/login?error=session_failed`
+          `${frontendUrl}/login?error=session_failed`
         );
       }
 
       // ✅ Redirect to FRONTEND with appropriate message
-      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
       let redirectPath = "/dashboard";
 
       switch (authType) {

@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
+  "engines": {
+    "node": ">=20 <21"
+  },
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx watch --clear-screen=false server/index.ts",
     "dev:ngrok": "cross-env NGROK_MODE=true NODE_ENV=development tsx watch --clear-screen=false server/index.ts",

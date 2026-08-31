@@ -16,7 +16,9 @@ export default defineConfig({
   },
   root: path.resolve(__dirname, "client"),
   build: {
-    outDir: path.resolve(__dirname, "dist"),
+    // Keep browser assets separate from the bundled Node entrypoint in dist/.
+    // Express serves this directory in production (including SPA fallbacks).
+    outDir: path.resolve(__dirname, "dist", "public"),
     emptyOutDir: true,
   },
 });

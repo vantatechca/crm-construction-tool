@@ -270,8 +270,10 @@ When you've gathered sufficient information, use the save_lead_info function to 
   }
 
   // Updated to accept clientId
-  async handleIncomingCall(callId: string, clientId: string): Promise<void> {
-    this.clientIds.set(callId, clientId); // Store clientId
+  async handleIncomingCall(callId: string, clientId?: string): Promise<void> {
+    if (clientId) {
+      this.clientIds.set(callId, clientId); // Store clientId when known
+    }
 
     await this.acceptIncomingCall(callId);
 
