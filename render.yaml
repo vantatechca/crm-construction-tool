@@ -15,6 +15,18 @@ services:
       - key: NODE_VERSION
         value: "20"
 
+      - key: FRONTEND_URL
+        value: https://crm-construction-irnr.onrender.com
+
+      - key: BASE_URL
+        value: https://crm-construction-irnr.onrender.com
+
+      - key: CLIENT_URL
+        value: https://crm-construction-irnr.onrender.com
+
+      - key: GOOGLE_CALLBACK_URL
+        value: https://crm-construction-irnr.onrender.com/api/auth/google/callback
+
       - key: DATABASE_URL
         sync: false
 
