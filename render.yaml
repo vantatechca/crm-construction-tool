@@ -7,35 +7,64 @@ services:
     startCommand: npm start
     healthCheckPath: /api/healthz
     autoDeployTrigger: commit
+
     envVars:
       - key: NODE_ENV
         value: production
+
       - key: NODE_VERSION
         value: "20"
+
       - key: DATABASE_URL
         sync: false
+
       - key: SESSION_SECRET
         generateValue: true
-      - key: FRONTEND_URL
-        sync: false
-      - key: BASE_URL
-        sync: false
-      - key: CLIENT_URL
-        sync: false
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-      - key: GOOGLE_CLIENT_SECRET
-        sync: false
-      - key: GOOGLE_CALLBACK_URL
-        sync: false
-      - key: STRIPE_SECRET_KEY
-        sync: false
-      - key: STRIPE_WEBHOOK_SECRET
-        sync: false
-      - key: VITE_STRIPE_PUBLISHABLE_KEY
-        sync: false
-      - key: ANTHROPIC_API_KEY
-        sync: false
+
       - key: OPENAI_API_KEY2
         sync: false
 
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+
+      - key: CLOUDINARY_API_KEY
+        sync: false
+
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+      - key: EMAIL_PASSWORD
+        sync: false
+
+      - key: EMAIL_FROM
+        sync: false
+
+      - key: EMAIL_TOKEN_SECRET
+        generateValue: true
+
+      - key: ENCRYPTION_KEY
+        generateValue: true
+
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+
+      - key: STRIPE_SECRET_KEY
+        sync: false
+
+      - key: VITE_STRIPE_PUBLISHABLE_KEY
+        sync: false
+
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+
+      - key: WHATSAPP_VERIFY_TOKEN
+        sync: false
