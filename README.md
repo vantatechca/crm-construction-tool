@@ -4,6 +4,9 @@ This repository contains a Vite/React client and an Express server deployed as
 one Node web service. The production build writes the browser application to
 `dist/public` and the server bundle to `dist/index.js`.
 
+Render installs development dependencies during the build because Vite and the
+TypeScript build tooling are required to create the production bundle.
+
 ## Deploy to Render
 
 1. Push this repository to GitHub, GitLab, or Bitbucket.
