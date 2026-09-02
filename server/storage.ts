@@ -75,6 +75,9 @@ export interface IStorage {
   // Client operations
   getClients(userId: string): Promise<Client[]>;
   getClient(id: string): Promise<Client | undefined>;
+  getClientByWhatsAppPhoneNumberId(
+    phoneNumberId: string
+  ): Promise<Client | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, updates: Partial<InsertClient>): Promise<Client>;
 
@@ -248,6 +251,22 @@ export class DatabaseStorage implements IStorage {
 
   async getClient(id: string): Promise<Client | undefined> {
     const [client] = await db.select().from(clients).where(eq(clients.id, id));
+    return client;
+  }
+
+  async getClientByWhatsAppPhoneNumberId(
+    phoneNumberId: string
+  ): Promise<Client | undefined> {
+    const [client] = await db
+      .select()
+      .from(clients)
+      .where(
+        and(
+          eq(clients.whatsappPhoneNumberId, phoneNumberId.trim()),
+          eq(clients.isActive, true)
+        )
+      )
+      .limit(1);
     return client;
   }
 

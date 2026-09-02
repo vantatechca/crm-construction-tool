@@ -593,8 +593,41 @@ export class LeadQualificationService {
       console.log("Phone Number ID:", phoneNumberId);
       console.log("WhatsApp Message ID:", messageId);
 
+      // Resolve the destination tenant before using the sender's phone number.
+      // Existing leads may have been created under a different client.
+      const targetClientForMessage = phoneNumberId
+        ? await storage.getClientByWhatsAppPhoneNumberId(phoneNumberId)
+        : undefined;
+
       // Step 1: Find or create lead
       let lead = await storage.getLeadByPhone(from);
+
+      if (
+        lead &&
+        targetClientForMessage &&
+        lead.clientId !== targetClientForMessage.id
+      ) {
+        const previousClientId = lead.clientId;
+        console.log(
+          `Moving lead ${lead.id} from client ${previousClientId} to WhatsApp client ${targetClientForMessage.id}`
+        );
+
+        const previousConversations = await storage.getAllConversations(
+          previousClientId
+        );
+        for (const previousConversation of previousConversations) {
+          if (previousConversation.leadId === lead.id) {
+            await storage.updateConversation(previousConversation.id, {
+              clientId: targetClientForMessage.id,
+            });
+          }
+        }
+
+        lead = await storage.updateLead(lead.id, {
+          clientId: targetClientForMessage.id,
+        });
+      }
+
       if (!lead) {
         console.log("📝 Unknown number - creating new lead automatically");
         const allUsers = await storage.getAllUsersForAdmin();
@@ -747,6 +780,9 @@ export class LeadQualificationService {
 
       await storage.markPreviousMessagesAsRead(conversation.id);
       await storage.incrementUnreadCount(conversation.id);
+      await storage.updateConversation(conversation.id, {
+        lastMessageAt: savedMessage.sentAt || new Date(),
+      });
 
       // ✅ IMPORTANT: Broadcast lead message IMMEDIATELY before AI processing
       this.broadcastUpdate({
